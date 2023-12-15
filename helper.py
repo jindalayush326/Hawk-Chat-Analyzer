@@ -6,7 +6,7 @@ from wordcloud import WordCloud
 import emoji
 import joblib
 
-pipe_lr = joblib.load(open("D:\ml\project\Hawk/chat_emotion.pkl", "rb"))
+pipe_lr = joblib.load(open("D:\ml\project\Hawk/chat_emotion.pkl.gz", "rb"))
 emotions_emoji_dict = {"anger": "😠", "disgust": "🤮", "fear": "😨😱", "happy": "🤗", "joy": "😂", "neutral": "😐", "sad": "😔",
                        "sadness": "😔", "shame": "😳", "surprise": "😮"}
 ext=URLExtract()
@@ -132,10 +132,15 @@ def emotion_detection(selected_user, df):
     df_most_repeated = pd.DataFrame({'Word': [most_repeated_word], 'Repetitions': [repetitions_count]})
 
 # Extract the values from the DataFrame
-    word_values = df_most_repeated['Word'].values
+    word_values = df_most_repeated['Word']
+    if hasattr(pipe_lr, "predict_proba"):
+        predict_prob = pipe_lr.predict_proba(word_values)
+    else:
+        # Handle the case where predict_proba is not available
+        predict_prob = None
 
     predict_emotion = pipe_lr.predict(word_values)
-    predict_prob = pipe_lr.predict_proba(word_values)
+    # predict_prob = pipe_lr.predict_proba(word_values)
     return predict_emotion[0], predict_prob
 
         

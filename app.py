@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import joblib
 
-pipe_lr = joblib.load(open("D:\ml\project\Hawk/chat_emotion.pkl", "rb"))
+pipe_lr = joblib.load(open("D:\ml\project\Hawk/chat_emotion.pkl.gz", "rb"))
 
 emotions_emoji_dict = {"anger": "😠", "disgust": "🤮", "fear": "😨😱", "happy": "🤗", "joy": "😂", "neutral": "😐", "sad": "😔",
                        "sadness": "😔", "shame": "😳", "surprise": "😮"}
@@ -113,11 +113,14 @@ if uploaded_file is not None:
             #st.write(probability)
             proba_df = pd.DataFrame(predict_prob, columns=pipe_lr.classes_)
             #st.write(proba_df.T)
-            proba_df_clean = proba_df.T.reset_index()
-            proba_df_clean.columns = ["emotions", "probability"]
+            proba_df_transposed = proba_df.T.reset_index()
+            proba_df_transposed.columns = ["emotions", "probability"]
 
-            fig = alt.Chart(proba_df_clean).mark_bar().encode(x='emotions', y='probability', color='emotions')
+
+            fig = alt.Chart(proba_df_transposed).mark_bar().encode(x='emotions', y='probability', color='emotions')
+
             st.altair_chart(fig, use_container_width=True)
+
 
             
         col1,col2=st.columns(2)
