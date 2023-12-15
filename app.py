@@ -2,6 +2,16 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import preprocessor,helper
 import seaborn as sns
+import altair as alt
+import numpy as np
+import pandas as pd
+import joblib
+
+pipe_lr = joblib.load(open("D:\ml\project\Hawk/chat_emotion.pkl", "rb"))
+
+emotions_emoji_dict = {"anger": "😠", "disgust": "🤮", "fear": "😨😱", "happy": "🤗", "joy": "😂", "neutral": "😐", "sad": "😔",
+                       "sadness": "😔", "shame": "😳", "surprise": "😮"}
+
 
 st.set_page_config(layout="wide")
 # This is done for uploading the chat file in sidebar
@@ -24,7 +34,7 @@ if uploaded_file is not None:
     selected_user=st.sidebar.selectbox('Show Analysis of:', user_list)
     if st.sidebar.button('Show Analysis'):
         
-        num_messages,words,num_media,links=helper.fetch_stats(selected_user,df)
+        num_messages,words,num_media,links= helper.fetch_stats(selected_user,df)
         st.title('Top Statistics')
         col1,col2,col3,col4=st.columns(4)
         with col1:
@@ -87,6 +97,28 @@ if uploaded_file is not None:
         #     fig,ax=plt.subplots()
         #     ax.pie(emoji_df[1].head(),labels=emoji_df[0].head(),autopct="%0.2f")
         #     st.pyplot(fig)
+        
+        # Emotion detection
+        st.title("Emotion Detection")
+        predict_emotion,predict_prob = helper.emotion_detection(selected_user,df)
+        col1,col2=st.columns(2)
+        with col1:
+            st.success("Prediction")
+            emoji_icon = emotions_emoji_dict[predict_emotion]
+            st.write("{}:{}".format(predict_emotion, emoji_icon))
+            st.write("Confidence:{}".format(np.max(predict_prob)))
+            
+        with col2:
+            st.success("Prediction Probability")
+            #st.write(probability)
+            proba_df = pd.DataFrame(predict_prob, columns=pipe_lr.classes_)
+            #st.write(proba_df.T)
+            proba_df_clean = proba_df.T.reset_index()
+            proba_df_clean.columns = ["emotions", "probability"]
+
+            fig = alt.Chart(proba_df_clean).mark_bar().encode(x='emotions', y='probability', color='emotions')
+            st.altair_chart(fig, use_container_width=True)
+
             
         col1,col2=st.columns(2)
         with col1:
@@ -130,4 +162,8 @@ if uploaded_file is not None:
         fig,ax=plt.subplots()
         ax=sns.heatmap(user_heatmap)
         st.pyplot(fig)
+        
+        
+
+
         
