@@ -4,6 +4,11 @@ from collections import Counter
 from urlextract import URLExtract
 from wordcloud import WordCloud
 import emoji
+import joblib
+
+pipe_lr = joblib.load(open("D:\ml\project\Hawk/chat_emotion.pkl", "rb"))
+emotions_emoji_dict = {"anger": "😠", "disgust": "🤮", "fear": "😨😱", "happy": "🤗", "joy": "😂", "neutral": "😐", "sad": "😔",
+                       "sadness": "😔", "shame": "😳", "surprise": "😮"}
 ext=URLExtract()
 def fetch_stats(selected_user,df):
     if selected_user!='Overall':
@@ -106,3 +111,32 @@ def activity_heatmap(selected_user,df):
     if selected_user!='Overall':
         df=df[df['user']==selected_user.replace('\n',' ')]
     return df.pivot_table(index='day_name',columns='period',values='message',aggfunc='count').fillna(0)
+
+def emotion_detection(selected_user, df):
+    f=open('stop_hinglish.txt','r')
+    stop_word=f.read()
+    if selected_user!='Overall':
+        df=df[df['user']==selected_user.replace('\n',' ')]
+        # Removing group notification messages
+    temp=df[df['user']!='group_notification']
+    # Removing media messages
+    temp=temp[temp['message']!='<Media omitted>\n']
+    
+    words=[]
+    
+    for message in temp['message']:
+        for word in message.lower().split():
+            if word not in stop_word:
+                words.append(word)
+    most_repeated_word, repetitions_count = Counter(words).most_common(1)[0]
+    df_most_repeated = pd.DataFrame({'Word': [most_repeated_word], 'Repetitions': [repetitions_count]})
+
+# Extract the values from the DataFrame
+    word_values = df_most_repeated['Word'].values
+
+    predict_emotion = pipe_lr.predict(word_values)
+    predict_prob = pipe_lr.predict_proba(word_values)
+    return predict_emotion[0], predict_prob
+
+        
+    
