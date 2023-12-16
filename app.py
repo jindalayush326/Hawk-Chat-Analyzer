@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import joblib
 
-pipe_lr = joblib.load(open("D:\ml\project\Hawk/chat_emotion.pkl.gz", "rb"))
+pipe_lr = joblib.load(open("chat_emotion.pkl.gz", "rb"))
 
 emotions_emoji_dict = {"anger": "😠", "disgust": "🤮", "fear": "😨😱", "happy": "🤗", "joy": "😂", "neutral": "😐", "sad": "😔",
                        "sadness": "😔", "shame": "😳", "surprise": "😮"}
